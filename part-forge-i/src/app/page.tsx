@@ -1,20 +1,17 @@
 import styles from './page.module.css';
+import { db } from '@/db/client';
+import { parts } from '@/db/schema';
+import { desc } from 'drizzle-orm';
 
-// Minimal shape for items from /api/parts
-type Part = {
-  id: number;
-  manufacturer: string;
-  model: string;
-  category: string;
-  priceUsd: string;
-  wattage?: number | null;
-  socket?: string | null;
-  sku: string;
-};
+// Use Drizzle's inferred type for parts
+export type Part = typeof parts.$inferSelect;
 
 export default async function Home() {
-  const res = await fetch(`/api/parts`, { cache: 'no-store' });
-  const { items } = (await res.json()) as { items: Part[] };
+  const items: Part[] = await db
+    .select()
+    .from(parts)
+    .orderBy(desc(parts.createdAt))
+    .limit(50);
 
   return (
     <main className={styles.main}>
