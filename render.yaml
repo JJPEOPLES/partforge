@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: part-forge-web
+    env: node
+    rootDir: part-forge-i
+    plan: starter
+    buildCommand: |
+      npm ci
+      npm run db:migrate
+      npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_VERSION
+        value: 22
+      - key: NEXT_TELEMETRY_DISABLED
+        value: '1'
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+
+  - type: worker
+    name: pcpp-worker
+    env: node
+    rootDir: part-forge-i
+    plan: starter
+    buildCommand: |
+      npm ci
+      pip install -r pcpartpicker/requirements.txt psycopg2-binary
+    startCommand: npm run worker:pcpp
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: PCPP_INTERVAL_SEC
+        value: '900'
+
+cronJobs:
+  - name: pcpp-ingest-hourly
+    env: python
+    schedule: '0 * * * *'
+    command: |
+      pip install -r pcpartpicker/requirements.txt psycopg2-binary
+      python scripts/python/ingest_pcpartpicker.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
