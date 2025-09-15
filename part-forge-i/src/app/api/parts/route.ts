@@ -1,8 +1,8 @@
 export const runtime = 'edge';
 
 import { NextRequest } from 'next/server';
-import { db } from '@/src/db/client';
-import { parts } from '@/src/db/schema';
+import { db } from '@/db/client';
+import { parts } from '@/db/schema';
 import { desc, eq } from 'drizzle-orm';
 
 export async function GET(req: NextRequest) {
@@ -11,7 +11,12 @@ export async function GET(req: NextRequest) {
 
   let data;
   if (category) {
-    data = await db.select().from(parts).where(eq(parts.category, category)).orderBy(desc(parts.createdAt)).limit(50);
+    data = await db
+      .select()
+      .from(parts)
+      .where(eq(parts.category, category))
+      .orderBy(desc(parts.createdAt))
+      .limit(50);
   } else {
     data = await db.select().from(parts).orderBy(desc(parts.createdAt)).limit(50);
   }
